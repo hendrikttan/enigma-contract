@@ -225,6 +225,7 @@ function principalHash(seed, nonce, workerAddresses, workerStakes) {
     // since the inputs are in hex string, they are twice as long as their bytes
     hexStr += (new BN(val.length/2).toString(16, 16)) + val;
   }
+  hexStr = hexStr.toLowerCase();
   return web3Utils.soliditySha3({t: 'bytes', v: hexStr});
 }
 
