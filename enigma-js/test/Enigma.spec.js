@@ -998,8 +998,16 @@ describe('Enigma tests', () => {
 
     it('should simulate getting the state keys for the contract / epoch', async () => {
       if (process.env.PRINCIPAL_CONTAINER) {
-        const workerParams = await enigma.getWorkerParams(scTask.creationBlockNumber);
-        console.log('Selecting worker with params', 'workers:', workerParams.workers,
+        let blockNumber = await web3.eth.getBlockNumber();
+        const workerParams = await enigma.getWorkerParams(blockNumber);
+        // const workerParams = {
+        //   firstBlockNumber: parseInt(getWorkerParamsResult[0]),
+        //   seed: web3.utils.toBN(getWorkerParamsResult[1]),
+        //   workers: getWorkerParamsResult[2],
+        //   stakes: getWorkerParamsResult[3].map((x) => web3.utils.toBN(x)),
+        // };
+        console.log('The HEX worker params',
+          'workers:', workerParams.workers,
           'stakes:', workerParams.stakes.map((s) => web3.utils.numberToHex(s)),
           'seed:', web3.utils.numberToHex(workerParams.seed));
         const selectedWorkerAddr = (await enigma.selectWorkerGroup(scTask.scAddr, workerParams, 1))[0];
@@ -1007,6 +1015,12 @@ describe('Enigma tests', () => {
         const worker = data.workers.find((w) => w[0] === selectedWorkerAddr.toLowerCase());
         const stateKeys = await getStateKeysInContainer(enigma, worker, [scTask.scAddr]);
         console.log('the response', stateKeys);
+        if (workerParams.workers.length > 1) {
+          console.log('workers', workerParams.workers.map((w) => web3.utils.hexToBytes(web3.utils.numberToHex(w))));
+          console.log('stakes', workerParams.stakes.map((s) => s.toString()));
+          console.log('seed', workerParams.seed.toString());
+          console.log('The worker params', workerParams);
+        }
       } else {
         console.log('Getting state keys requires the live Principal container.');
       }
@@ -1541,7 +1555,8 @@ describe('Enigma tests', () => {
       const parameters = [10, false];
       const optionalEthereumData = enigma.web3.eth.abi.encodeFunctionCall(jsonInterface, parameters);
       const optionalEthereumContractAddress = sampleContract.options.address;
-      const proof = utils.hash([codeHash, task.inputsHash, stateDeltaHash, stateDeltaHash, outputHash,
+      const proof = utils.hash([
+        codeHash, task.inputsHash, stateDeltaHash, stateDeltaHash, outputHash,
         web3.utils.toBN(gasUsed).toString(16, 16), optionalEthereumData, optionalEthereumContractAddress, '0x01']);
       const workerParams = await enigma.getWorkerParams(task.creationBlockNumber);
       const selectedWorkerAddr = (await enigma.selectWorkerGroup(task.scAddr, workerParams, 1))[0];
