@@ -1007,18 +1007,16 @@ describe('Enigma tests', () => {
         const selectedWorkerAddr = (await enigma.selectWorkerGroup(scTask.scAddr, workerParams, 1))[0];
         console.log('The selected worker:', selectedWorkerAddr);
         const worker = data.workers.find((w) => w[0] === selectedWorkerAddr.toLowerCase());
-        const stateKeys = await getStateKeysInContainer(enigma, worker, [scTask.scAddr]);
-        console.log('the response', stateKeys);
-        if (workerParams.workers.length > 1) {
-          console.log('workers', workerParams.workers.map((w) => web3.utils.hexToBytes(web3.utils.numberToHex(w))));
-          console.log('stakes', workerParams.stakes.map((s) => s.toString()));
-          console.log('seed', workerParams.seed.toString());
-          console.log('The worker params', workerParams);
+        const promises = [];
+        for (let i = 0; i < 20; i++) {
+          console.log('Fetching the state keys');
+          promises.push(getStateKeysInContainer(enigma, worker, [scTask.scAddr]));
         }
+        await Promise.all(promises);
       } else {
         console.log('Getting state keys requires the live Principal container.');
       }
-    });
+    }, 5 * 60 * 60);
 
     let scAddr;
     let task;
