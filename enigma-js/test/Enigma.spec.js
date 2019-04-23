@@ -1000,12 +1000,6 @@ describe('Enigma tests', () => {
       if (process.env.PRINCIPAL_CONTAINER) {
         let blockNumber = await web3.eth.getBlockNumber();
         const workerParams = await enigma.getWorkerParams(blockNumber);
-        // const workerParams = {
-        //   firstBlockNumber: parseInt(getWorkerParamsResult[0]),
-        //   seed: web3.utils.toBN(getWorkerParamsResult[1]),
-        //   workers: getWorkerParamsResult[2],
-        //   stakes: getWorkerParamsResult[3].map((x) => web3.utils.toBN(x)),
-        // };
         console.log('The HEX worker params',
           'workers:', workerParams.workers,
           'stakes:', workerParams.stakes.map((s) => web3.utils.numberToHex(s)),

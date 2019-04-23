@@ -1,3 +1,4 @@
+import BN from 'bn.js';
 import Docker from 'dockerode';
 import web3Utils from 'web3-utils';
 import msgpack from 'msgpack-lite';
@@ -51,23 +52,35 @@ exports.execInContainer = (enigma, commandOption, resetEpochState = false) => {
 exports.getStateKeysInContainer = (enigma, worker, scAddrs) => {
   let container = docker.getContainer(process.env.PRINCIPAL_CONTAINER);
   const identity = EthCrypto.createIdentity();
-  let pubkey = [];
-  for (let n = 0; n < identity.publicKey.length; n += 2) {
-    pubkey.push(parseInt(identity.publicKey.substr(n, 2), 16));
-  }
+  const pubkey = web3Utils.hexToBytes(`0x${identity.publicKey}`);
   const prefix = 'Enigma Message'.split('').map((c) => c.charCodeAt(0));
+  const id = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1];
   const request = {
     prefix: prefix,
     data: {Request: scAddrs.map((a) => web3Utils.hexToBytes(a))},
     pubkey: pubkey,
-    id: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    id: id,
   };
   console.log('The JSON request', JSON.stringify(request));
   const buffer = msgpack.encode(request);
   const msg = buffer.toString('hex');
+  // TODO: Where does 40 come from?
+  let image = (new BN(40)).toString(16, 16);
+  for (let val of scAddrs) {
+    val = utils.remove0x(val);
+    // since the inputs are in hex string, they are twice as long as their bytes
+    image += (new BN(val.length / 2).toString(16, 16)) + val;
+  }
+  for (let val of [pubkey, id]) {
+    val = utils.remove0x(web3Utils.bytesToHex(val));
+    // since the inputs are in hex string, they are twice as long as their bytes
+    image += (new BN(val.length / 2).toString(16, 16)) + val;
+  }
+  let rawImage = web3Utils.hexToBytes(`0x${image}`);
+  console.log('The image:', rawImage);
   const signature = EthCrypto.sign(worker[4], web3Utils.soliditySha3({
     t: 'bytes',
-    value: msg,
+    value: image,
   }));
   const params = JSON.stringify([msg, utils.remove0x(signature)]);
   console.log('The getStateKeys params:', params);
