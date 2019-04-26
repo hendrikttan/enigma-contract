@@ -996,6 +996,30 @@ describe('Enigma tests', () => {
       expect(receipt).toBeTruthy();
     }, 30000);
 
+    it('should simulate getting a single workers state keys for the contract / epoch', async () => {
+      if (process.env.PRINCIPAL_CONTAINER) {
+        let blockNumber = await web3.eth.getBlockNumber();
+        let workerParams = await enigma.getWorkerParams(blockNumber);
+        console.log('The HEX worker params',
+          'workers:', workerParams.workers,
+          'stakes:', workerParams.stakes.map((s) => web3.utils.numberToHex(s)),
+          'seed:', web3.utils.numberToHex(workerParams.seed),
+        );
+        console.log('The byte array params',
+          'workers:', workerParams.workers.map((w) => web3.utils.hexToBytes(w)),
+          'stakes:', workerParams.stakes.map((s) => s.toString()),
+        );
+        const selectedWorkerAddr = (await enigma.selectWorkerGroup(scTask.scAddr, workerParams, 1))[0];
+        console.log('The selected worker:', selectedWorkerAddr);
+        const worker = data.workers.find((w) => w[0] === selectedWorkerAddr.toLowerCase());
+        console.log('The secret contract address:', web3.utils.hexToBytes(scTask.scAddr));
+        const response = await getStateKeysInContainer(enigma, worker, [scTask.scAddr]);
+        console.log('The response:', response);
+      } else {
+        console.log('Getting state keys requires the live Principal container.');
+      }
+    }, 5 * 60 * 60);
+
     it('should simulate getting the state keys for the contract / epoch', async () => {
       if (process.env.PRINCIPAL_CONTAINER) {
         let blockNumber = await web3.eth.getBlockNumber();
