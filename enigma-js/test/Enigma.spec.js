@@ -1032,7 +1032,7 @@ describe('Enigma tests', () => {
         console.log('The selected worker:', selectedWorkerAddr);
         const worker = data.workers.find((w) => w[0] === selectedWorkerAddr.toLowerCase());
         const promises = [];
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 2; i++) {
           console.log('Fetching the state keys');
           promises.push(getStateKeysInContainer(enigma, worker, [scTask.scAddr]));
         }

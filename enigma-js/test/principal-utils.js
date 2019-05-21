@@ -82,7 +82,7 @@ exports.getStateKeysInContainer = (enigma, worker, scAddrs) => {
     t: 'bytes',
     value: image,
   }));
-  const params = JSON.stringify([msg, utils.remove0x(signature)]);
+  const params = JSON.stringify({data: msg, sig: utils.remove0x(signature)});
   console.log('The getStateKeys params:', params);
   return new Promise((resolve, reject) => {
     const contractAddress = enigma.enigmaContract.options.address.substring(2);
